@@ -126,7 +126,7 @@ function Userinputs({resumeData,setResumeData}) {
       }
 
     } else {
-      toast.success("please fill missing fields")
+      toast.warning("please fill missing fields")
     }
   }
 
