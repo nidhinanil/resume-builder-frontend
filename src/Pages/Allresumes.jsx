@@ -1,21 +1,29 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { FaBackward, FaForward, FaSearch, FaTrash } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
 import { allResumeAPI, deleteResumeAPI } from '../services/allAPI'
 
 function Allresumes() {
     const [allResumes, setAllResumes] = useState([])
-    const [dummyResumes, setDummyResumes] = useState([])
     const [searchKey, setSearchKey] = useState("")
 
     const [currentPage, setCurrentPage] = useState(1)
     const rowsPerPage = 4
 
+  
+    const filteredResumes = useMemo(() => {
+        return allResumes?.filter(item =>
+            item?.job?.toLowerCase().includes(searchKey.toLowerCase()) ||
+            item?.fullName?.toLowerCase().includes(searchKey.toLowerCase())
+        ) || []
+    }, [searchKey, allResumes])
+
     const lastIndexOfCurrentPage = currentPage * rowsPerPage
     const firstIndexOfCurrentPage = lastIndexOfCurrentPage - rowsPerPage
 
-    const currentResumes = allResumes?.slice(firstIndexOfCurrentPage, lastIndexOfCurrentPage) || []
-    const totalPages = Math.ceil(allResumes.length / rowsPerPage)
+
+    const currentResumes = filteredResumes?.slice(firstIndexOfCurrentPage, lastIndexOfCurrentPage) || []
+    const totalPages = Math.ceil(filteredResumes.length / rowsPerPage)
 
     useEffect(() => {
         getAllResumes()
@@ -25,7 +33,6 @@ function Allresumes() {
         const response = await allResumeAPI()
         if (response.status == "200" || response.status === 200) {
             setAllResumes(response.data)
-            setDummyResumes(response.data)
         }
     }
 
@@ -38,16 +45,6 @@ function Allresumes() {
         }
     }
 
-    useEffect(() => {
-        const filtered = dummyResumes?.filter(item =>
-            item?.job?.toLowerCase().includes(searchKey.toLowerCase()) ||
-            item?.fullName?.toLowerCase().includes(searchKey.toLowerCase())
-        ) || []
-
-        setAllResumes(filtered)
-        setCurrentPage(1) 
-    }, [searchKey, dummyResumes])
-
     return (
         <div>
             <div className='my-5 container d-flex justify-content-center align-items-center flex-column'>
@@ -58,7 +55,7 @@ function Allresumes() {
                         type="text"
                         placeholder='Search Candidates By Name or Job Role'
                         className='form-control'
-                        onChange={(e) => { setSearchKey(e.target.value); setCurrentPage(1)}}
+                        onChange={(e) => { setSearchKey(e.target.value); setCurrentPage(1) }}
                     />
                     <FaSearch style={{ marginLeft: '-30px' }} />
                 </div>
@@ -103,14 +100,14 @@ function Allresumes() {
                 </table>
 
                 {/* Pagination Controls */}
-                {allResumes?.length > 0 && (
+                {filteredResumes?.length > 0 && (
                     <div className="d-flex justify-content-center align-items-center mt-4 w-100">
                         <button
                             onClick={() => setCurrentPage(currentPage - 1)}
                             disabled={currentPage === 1}
                             className="btn btn-secondary me-3"
                         >
-                           <FaBackward/>
+                            <FaBackward />
                         </button>
                         <span className="fw-bolder">
                             Page {currentPage} of {totalPages}
